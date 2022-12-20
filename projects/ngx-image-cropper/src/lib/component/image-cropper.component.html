@@ -1,6 +1,7 @@
 <div
   [style.background]="imageVisible && backgroundColor"
   #wrapper
+  id="wrapper"
 >
   <img
     #sourceImage
@@ -13,6 +14,7 @@
     [attr.alt]="imageAltText"
     (load)="imageLoadedInView()"
     (mousedown)="startMove($event, moveTypes.Drag)"
+    (mouseup)="endMove()"
     (touchstart)="startMove($event, moveTypes.Drag)"
   >
   <div
@@ -88,7 +90,7 @@
             (mousedown)="startMove($event, moveTypes.Resize, 'left')"
             (touchstart)="startMove($event, moveTypes.Resize, 'left')">
             </span>
-      <span class="rotation" (mousedown)="startMove($event, moveTypes.Rotate, '')">
+      <span class="rotation" #rotator (mousedown)="startMove($event, moveTypes.Rotate, '')" style="font-size: 16px">
         ↺
       </span>
     </ng-container>

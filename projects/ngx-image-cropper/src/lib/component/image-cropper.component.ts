@@ -51,6 +51,7 @@ export class ImageCropperComponent implements OnChanges, OnInit {
 
   @ViewChild('wrapper', {static: true}) wrapper!: ElementRef<HTMLDivElement>;
   @ViewChild('sourceImage', {static: false}) sourceImage!: ElementRef<HTMLDivElement>;
+  @ViewChild('rotator', {static: false}) rotator!: ElementRef<HTMLDivElement>;
 
   @Input() imageChangedEvent?: any;
   @Input() imageURL?: string;
@@ -220,7 +221,10 @@ export class ImageCropperComponent implements OnChanges, OnInit {
       x2: 0,
       y2: 0,
       clientX: 0,
-      clientY: 0
+      clientY: 0,
+      anchorX: 0,
+      anchorY: 0,
+      rotation: this.rotation,
     };
     this.maxSize = {
       width: 0,
@@ -371,6 +375,9 @@ export class ImageCropperComponent implements OnChanges, OnInit {
     if (event.preventDefault) {
       event.preventDefault();
     }
+    const rect = this.rotator.nativeElement.getBoundingClientRect()!;
+    const wrapper = this.wrapper.nativeElement.getBoundingClientRect()!;
+    const offsetX = ((this.wrapper.nativeElement.offsetWidth - this.sourceImage.nativeElement.offsetWidth) / 2);
     this.moveStart = {
       active: true,
       type: moveType,
@@ -378,6 +385,9 @@ export class ImageCropperComponent implements OnChanges, OnInit {
       transform: {...this.transform},
       clientX: this.cropperPositionService.getClientX(event),
       clientY: this.cropperPositionService.getClientY(event),
+      anchorX: rect.x - offsetX,
+      anchorY: rect.y - wrapper.top,
+      rotation: this.rotation,
       ...this.cropper
     };
   }
@@ -389,12 +399,18 @@ export class ImageCropperComponent implements OnChanges, OnInit {
     if (event.preventDefault) {
       event.preventDefault();
     }
+    const rect = this.rotator.nativeElement.getBoundingClientRect()!;
+    const wrapper = this.wrapper.nativeElement.getBoundingClientRect()!;
+    const offsetX = ((this.wrapper.nativeElement.offsetWidth - this.sourceImage.nativeElement.offsetWidth) / 2);
     this.moveStart = {
       active: true,
       type: MoveTypes.Pinch,
       position: 'center',
       clientX: this.cropper.x1 + (this.cropper.x2 - this.cropper.x1) / 2,
       clientY: this.cropper.y1 + (this.cropper.y2 - this.cropper.y1) / 2,
+      anchorX: rect.x - offsetX,
+      anchorY: rect.y - wrapper.top,
+      rotation: this.rotation,
       ...this.cropper
     };
   }
@@ -435,14 +451,17 @@ export class ImageCropperComponent implements OnChanges, OnInit {
           w: 0,
           h: 0
         };
-        const moveX = this.cropperPositionService.getClientX(event);
-        const moveY = this.cropperPositionService.getClientY(event);
-        const pre = Math.atan2(-moveY + cen.y, -moveX + cen.x) * 180 / Math.PI;
-        if (this.rotationOffset === 0) {
-          this.rotationOffset = pre;
-        }
-        console.log(pre);
-        this.rotation = pre;
+        const wrapper = this.wrapper.nativeElement.getBoundingClientRect()!;
+        const offsetX = ((this.wrapper.nativeElement.offsetWidth - this.sourceImage.nativeElement.offsetWidth) / 2);
+        const moveX = this.cropperPositionService.getClientX(event) - offsetX;
+        const moveY = this.cropperPositionService.getClientY(event) - wrapper.top;
+        // const cosOriginal = Math.atan2(cen.y - (rect.y - wrapper.top), cen.x - (rect.x - offsetX - 10));
+        const cosOriginal = Math.atan2(cen.y - this.moveStart!.anchorY, cen.x - this.moveStart!.anchorX);
+        const cosPos = Math.atan2(cen.y - moveY, cen.x - moveX);
+        const deg = (cosPos - cosOriginal) * 180 / Math.PI;
+        console.log(deg);
+        this.rotation = this.moveStart!.rotation + deg;
+        // this.rotation = pre;
       }
       this.cd.detectChanges();
     }
@@ -563,6 +582,10 @@ export class ImageCropperComponent implements OnChanges, OnInit {
     if (this.autoCrop) {
       this.crop();
     }
+  }
+
+  endMove(): void {
+
   }
 
   crop(): ImageCroppedEvent | null {

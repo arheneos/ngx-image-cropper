@@ -11,6 +11,9 @@ export interface MoveStart {
   y2: number;
   clientX: number;
   clientY: number;
+  anchorX: number;
+  anchorY: number;
+  rotation: number;
 }
 
 export enum MoveTypes {
