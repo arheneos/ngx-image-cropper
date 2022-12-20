@@ -1,22 +1,25 @@
-<input type="file" (change)="fileChangeEvent($event)" />
-<br />
-<br />
-<input [(ngModel)]="imageURL" placeholder="URL to load image" type="text" />
-<br />
-<br />
+<input type="file" (change)="fileChangeEvent($event)"/>
+<br/>
+<br/>
+<input [(ngModel)]="imageURL" placeholder="URL to load image" type="text"/>
+<br/>
+<br/>
 <button (click)="rotateLeft()">Rotate left</button>
 <button (click)="rotateRight()">Rotate right</button>
 <button (click)="flipHorizontal()">Flip horizontal</button>
 <button (click)="flipVertical()">Flip vertical</button>
-<br />
-<br />
-<button (click)="toggleContainWithinAspectRatio()">{{containWithinAspectRatio?'Fill Aspect Ratio':'Contain Within Aspect Ratio'}}</button>
-<button (click)="toggleAspectRatio()">Aspect ratio: {{aspectRatio === 4/3 ? '4/3' : '16/5'}}</button>
+<br/>
+<br/>
+<button
+  (click)="toggleContainWithinAspectRatio()">{{containWithinAspectRatio ? 'Fill Aspect Ratio' : 'Contain Within Aspect Ratio'}}</button>
+<button (click)="toggleAspectRatio()">Aspect ratio: {{aspectRatio === 4 / 3 ? '4/3' : '16/5'}}</button>
 <button (click)="resetImage()">Reset image</button>
-<br />
-<br />
-<input [(ngModel)]="rotation" placeholder="Rotation" type="number" (ngModelChange)="updateRotation()" /> <button (click)="zoomOut()">Zoom -</button> <button (click)="zoomIn()">Zoom +</button>
-<br />
+<br/>
+<br/>
+<input [(ngModel)]="rotation" placeholder="Rotation" type="number" (ngModelChange)="updateRotation()"/>
+<button (click)="zoomOut()">Zoom -</button>
+<button (click)="zoomIn()">Zoom +</button>
+<br/>
 <br/>
 <button (click)="moveLeft()">move left</button>
 <button (click)="moveRight()">move right</button>
@@ -34,7 +37,7 @@
   <image-cropper
     [imageChangedEvent]="imageChangedEvent"
     [imageURL]="imageURL"
-    [maintainAspectRatio]="true"
+    [maintainAspectRatio]="false"
     [containWithinAspectRatio]="containWithinAspectRatio"
     [aspectRatio]="aspectRatio"
     [resizeToWidth]="128"
@@ -47,6 +50,7 @@
     [style.display]="showCropper ? null : 'none'"
     [allowMoveImage]="allowMoveImage"
     [hidden]="hidden"
+    [rotation]="0"
     backgroundColor="red"
     format="png"
     (imageCropped)="imageCropped($event)"
@@ -57,4 +61,4 @@
   ></image-cropper>
   <div *ngIf="loading" class="loader">Loading...</div>
 </div>
-<img [src]="croppedImage" [style.border]="croppedImage ? '1px solid black' : 'none'" />
+<img [src]="croppedImage" [style.border]="croppedImage ? '1px solid black' : 'none'"/>

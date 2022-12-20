@@ -14,16 +14,16 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { DomSanitizer, SafeStyle, SafeUrl } from '@angular/platform-browser';
-import { CropperPosition, Dimensions, ImageCroppedEvent, ImageTransform, LoadedImage, MoveStart } from '../interfaces';
-import { OutputFormat } from '../interfaces/cropper-options.interface';
-import { CropperSettings } from '../interfaces/cropper.settings';
-import { MoveTypes } from '../interfaces/move-start.interface';
-import { CropService } from '../services/crop.service';
-import { CropperPositionService } from '../services/cropper-position.service';
-import { LoadImageService } from '../services/load-image.service';
-import { HammerStatic } from '../utils/hammer.utils';
-import { getEventForKey, getInvertedPositionForKey, getPositionForKey } from '../utils/keyboard.utils';
+import {DomSanitizer, SafeStyle, SafeUrl} from '@angular/platform-browser';
+import {CropperPosition, Dimensions, ImageCroppedEvent, ImageTransform, LoadedImage, MoveStart} from '../interfaces';
+import {OutputFormat} from '../interfaces/cropper-options.interface';
+import {CropperSettings} from '../interfaces/cropper.settings';
+import {MoveTypes} from '../interfaces/move-start.interface';
+import {CropService} from '../services/crop.service';
+import {CropperPositionService} from '../services/cropper-position.service';
+import {LoadImageService} from '../services/load-image.service';
+import {HammerStatic} from '../utils/hammer.utils';
+import {getEventForKey, getInvertedPositionForKey, getPositionForKey} from '../utils/keyboard.utils';
 
 @Component({
   selector: 'image-cropper',
@@ -80,6 +80,7 @@ export class ImageCropperComponent implements OnChanges, OnInit {
   @Input() containWithinAspectRatio = this.settings.containWithinAspectRatio;
   @Input() hideResizeSquares = this.settings.hideResizeSquares;
   @Input() allowMoveImage = false;
+  @Input() rotation = 0;
   @Input() cropper: CropperPosition = {
     x1: -100,
     y1: -100,
@@ -99,6 +100,7 @@ export class ImageCropperComponent implements OnChanges, OnInit {
   @Output() cropperReady = new EventEmitter<Dimensions>();
   @Output() loadImageFailed = new EventEmitter<void>();
   @Output() transformChange = new EventEmitter<ImageTransform>();
+  rotationOffset = 0;
 
 
   constructor(
@@ -412,7 +414,7 @@ export class ImageCropperComponent implements OnChanges, OnInit {
         this.checkCropperPosition(true);
       } else if (this.moveStart!.type === MoveTypes.Resize) {
         if (!this.cropperStaticWidth && !this.cropperStaticHeight) {
-          this.cropperPositionService.resize(event, this.moveStart!, this.cropper, this.maxSize, this.settings);
+          this.cropperPositionService.resize(event, this.moveStart!, this.cropper, this.maxSize, this.settings, this.rotation);
         }
         this.checkCropperPosition(false);
       } else if (this.moveStart!.type === MoveTypes.Drag) {
@@ -424,6 +426,23 @@ export class ImageCropperComponent implements OnChanges, OnInit {
           translateV: (this.moveStart!.transform?.translateV || 0) + diffY
         };
         this.setCssTransform();
+      } else if (this.moveStart!.type === MoveTypes.Rotate) {
+        const cen = {
+          x: (this.cropper.x1 + this.cropper.x2) / 2,
+          y: (this.cropper.y1 + this.cropper.y2) / 2,
+          pw: Math.max(this.cropper.x1 - this.cropper.x2, this.cropper.x2 - this.cropper.x1),
+          ph: Math.max(this.cropper.y1 - this.cropper.y2, this.cropper.y2 - this.cropper.y1),
+          w: 0,
+          h: 0
+        };
+        const moveX = this.cropperPositionService.getClientX(event);
+        const moveY = this.cropperPositionService.getClientY(event);
+        const pre = Math.atan2(-moveY + cen.y, -moveX + cen.x) * 180 / Math.PI;
+        if (this.rotationOffset === 0) {
+          this.rotationOffset = pre;
+        }
+        console.log(pre);
+        this.rotation = pre;
       }
       this.cd.detectChanges();
     }
@@ -438,7 +457,7 @@ export class ImageCropperComponent implements OnChanges, OnInit {
         event.preventDefault();
       }
       if (this.moveStart!.type === MoveTypes.Pinch) {
-        this.cropperPositionService.resize(event, this.moveStart!, this.cropper, this.maxSize, this.settings);
+        this.cropperPositionService.resize(event, this.moveStart!, this.cropper, this.maxSize, this.settings, this.rotation);
         this.checkCropperPosition(false);
       }
       this.cd.detectChanges();

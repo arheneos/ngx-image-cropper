@@ -17,5 +17,6 @@ export enum MoveTypes {
   Drag = 'drag',
   Move = 'move',
   Resize = 'resize',
-  Pinch = 'pinch'
+  Pinch = 'pinch',
+  Rotate = 'rotate'
 }

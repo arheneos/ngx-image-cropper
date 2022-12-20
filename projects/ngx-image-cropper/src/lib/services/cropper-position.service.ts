@@ -51,49 +51,106 @@ export class CropperPositionService {
     cropperPosition.y2 = moveStart.y2 + diffY;
   }
 
-  resize(event: any, moveStart: MoveStart, cropperPosition: CropperPosition, maxSize: Dimensions, settings: CropperSettings): void {
-    const moveX = this.getClientX(event) - moveStart.clientX;
-    const moveY = this.getClientY(event) - moveStart.clientY;
+  rotatePoint(pt: DOMRect, sin: number, cos: number): [number, number] {
+    return [pt.x * cos + pt.y * sin, pt.y * cos - pt.x * sin];
+  }
+
+  deg2rad(degrees: number): number {
+    return degrees * (Math.PI/180);
+  }
+
+  resize(event: any, moveStart: MoveStart, cropperPosition: CropperPosition, maxSize: Dimensions, settings: CropperSettings, rotation: number): void {
+    const cos = Math.cos(this.deg2rad(rotation));
+    const sin = Math.sin(this.deg2rad(rotation));
+    const center = {
+      x: (cropperPosition.x1 + cropperPosition.x2) / 2,
+      y: (cropperPosition.y1 + cropperPosition.y2) / 2,
+      pw: Math.max(cropperPosition.x1 - cropperPosition.x2, cropperPosition.x2 - cropperPosition.x1),
+      ph: Math.max(cropperPosition.y1 - cropperPosition.y2, cropperPosition.y2 - cropperPosition.y1),
+      w: 0,
+      h: 0
+    };
+    center.w = cos * center.pw;
+    center.h = sin * center.ph;
+    const delX = this.getClientX(event) - moveStart.clientX;
+    const delY = this.getClientY(event) - moveStart.clientY;
+    const angle = this.deg2rad(rotation);
+    let moveX = delX;
+    let moveY = delY;
+
     switch (moveStart.position) {
       case 'left':
         cropperPosition.x1 = Math.min(Math.max(moveStart.x1 + moveX, cropperPosition.x2 - settings.cropperScaledMaxWidth),
           cropperPosition.x2 - settings.cropperScaledMinWidth);
+        cropperPosition.x2 = Math.max(Math.min(moveStart.x2 - moveX, cropperPosition.x1 + settings.cropperScaledMaxWidth),
+          cropperPosition.x1 + settings.cropperScaledMinWidth);
         break;
       case 'topleft':
         cropperPosition.x1 = Math.min(Math.max(moveStart.x1 + moveX, cropperPosition.x2 - settings.cropperScaledMaxWidth),
           cropperPosition.x2 - settings.cropperScaledMinWidth);
+        cropperPosition.x2 = Math.max(Math.min(moveStart.x2 - moveX, cropperPosition.x1 + settings.cropperScaledMaxWidth),
+          cropperPosition.x1 + settings.cropperScaledMinWidth);
         cropperPosition.y1 = Math.min(Math.max(moveStart.y1 + moveY, cropperPosition.y2 - settings.cropperScaledMaxHeight),
           cropperPosition.y2 - settings.cropperScaledMinHeight);
+        cropperPosition.y2 = Math.max(Math.min(moveStart.y2 - moveY, cropperPosition.y1 + settings.cropperScaledMaxHeight),
+          cropperPosition.y1 + settings.cropperScaledMinHeight);
         break;
       case 'top':
         cropperPosition.y1 = Math.min(Math.max(moveStart.y1 + moveY, cropperPosition.y2 - settings.cropperScaledMaxHeight),
           cropperPosition.y2 - settings.cropperScaledMinHeight);
+        cropperPosition.y2 = Math.max(Math.min(moveStart.y2 - moveY, cropperPosition.y1 + settings.cropperScaledMaxHeight),
+          cropperPosition.y1 + settings.cropperScaledMinHeight);
         break;
       case 'topright':
+        cropperPosition.x1 = Math.min(Math.max(moveStart.x1 - moveX, cropperPosition.x2 - settings.cropperScaledMaxWidth),
+          cropperPosition.x2 - settings.cropperScaledMinWidth);
         cropperPosition.x2 = Math.max(Math.min(moveStart.x2 + moveX, cropperPosition.x1 + settings.cropperScaledMaxWidth),
           cropperPosition.x1 + settings.cropperScaledMinWidth);
         cropperPosition.y1 = Math.min(Math.max(moveStart.y1 + moveY, cropperPosition.y2 - settings.cropperScaledMaxHeight),
           cropperPosition.y2 - settings.cropperScaledMinHeight);
+        cropperPosition.y2 = Math.max(Math.min(moveStart.y2 - moveY, cropperPosition.y1 + settings.cropperScaledMaxHeight),
+          cropperPosition.y1 + settings.cropperScaledMinHeight);
         break;
       case 'right':
+        cropperPosition.x1 = Math.min(Math.max(moveStart.x1 - moveX, cropperPosition.x2 - settings.cropperScaledMaxWidth),
+          cropperPosition.x2 - settings.cropperScaledMinWidth);
         cropperPosition.x2 = Math.max(Math.min(moveStart.x2 + moveX, cropperPosition.x1 + settings.cropperScaledMaxWidth),
           cropperPosition.x1 + settings.cropperScaledMinWidth);
         break;
       case 'bottomright':
-        cropperPosition.x2 = Math.max(Math.min(moveStart.x2 + moveX, cropperPosition.x1 + settings.cropperScaledMaxWidth),
+        cropperPosition.x2 = Math.max(Math.min(moveStart.x2 + moveX * cos, cropperPosition.x1 + settings.cropperScaledMaxWidth),
           cropperPosition.x1 + settings.cropperScaledMinWidth);
+        cropperPosition.x1 = Math.min(Math.max(moveStart.x1 - moveX * cos, cropperPosition.x2 - settings.cropperScaledMaxWidth),
+          cropperPosition.x2 - settings.cropperScaledMinWidth);
         cropperPosition.y2 = Math.max(Math.min(moveStart.y2 + moveY, cropperPosition.y1 + settings.cropperScaledMaxHeight),
           cropperPosition.y1 + settings.cropperScaledMinHeight);
+        cropperPosition.y1 = Math.min(Math.max(moveStart.y1 - moveY, cropperPosition.y2 - settings.cropperScaledMaxHeight),
+          cropperPosition.y2 - settings.cropperScaledMinHeight);
         break;
       case 'bottom':
+        cropperPosition.y1 = Math.min(Math.max(moveStart.y1 - moveY, cropperPosition.y2 - settings.cropperScaledMaxHeight),
+          cropperPosition.y2 - settings.cropperScaledMinHeight);
         cropperPosition.y2 = Math.max(Math.min(moveStart.y2 + moveY, cropperPosition.y1 + settings.cropperScaledMaxHeight),
           cropperPosition.y1 + settings.cropperScaledMinHeight);
         break;
       case 'bottomleft':
-        cropperPosition.x1 = Math.min(Math.max(moveStart.x1 + moveX, cropperPosition.x2 - settings.cropperScaledMaxWidth),
-          cropperPosition.x2 - settings.cropperScaledMinWidth);
-        cropperPosition.y2 = Math.max(Math.min(moveStart.y2 + moveY, cropperPosition.y1 + settings.cropperScaledMaxHeight),
-          cropperPosition.y1 + settings.cropperScaledMinHeight);
+
+        if (45 < angle && angle < 135) {
+          // moveX = delY;
+          // moveY = delX;
+        } else if (225 < angle && angle < 315) {
+          // moveX = delY;
+          // moveY = delX;
+        } else {
+          cropperPosition.x1 = Math.min(Math.max(moveStart.x1 + moveX, cropperPosition.x2 - settings.cropperScaledMaxWidth),
+            cropperPosition.x2 - settings.cropperScaledMinWidth);
+          cropperPosition.x2 = Math.max(Math.min(moveStart.x2 - moveX, cropperPosition.x1 + settings.cropperScaledMaxWidth),
+            cropperPosition.x1 + settings.cropperScaledMinWidth);
+          cropperPosition.y2 = Math.max(Math.min(moveStart.y2 + moveY, cropperPosition.y1 + settings.cropperScaledMaxHeight),
+            cropperPosition.y1 + settings.cropperScaledMinHeight);
+          cropperPosition.y1 = Math.min(Math.max(moveStart.y1 - moveY, cropperPosition.y2 - settings.cropperScaledMaxHeight),
+            cropperPosition.y2 - settings.cropperScaledMinHeight);
+        }
         break;
       case 'center':
         const scale = event.scale;

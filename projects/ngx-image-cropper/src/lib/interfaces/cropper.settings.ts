@@ -12,8 +12,8 @@ export class CropperSettings {
   resetCropOnAspectRatioChange = true;
   resizeToWidth = 0;
   resizeToHeight = 0;
-  cropperMinWidth = 0;
-  cropperMinHeight = 0;
+  cropperMinWidth = 50;
+  cropperMinHeight = 50;
   cropperMaxHeight = 0;
   cropperMaxWidth = 0;
   cropperStaticWidth = 0;

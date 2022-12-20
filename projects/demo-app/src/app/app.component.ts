@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Dimensions, ImageCroppedEvent, ImageTransform } from 'ngx-image-cropper';
+import { Dimensions, ImageCroppedEvent, ImageTransform } from '../../../ngx-image-cropper/src';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +20,7 @@ export class AppComponent {
   transform: ImageTransform = {
     translateUnit: 'px'
   };
-  imageURL?: string;
+  imageURL = '/assets/test.png';
   loading = false;
   allowMoveImage = false;
   hidden = false;

@@ -8,6 +8,13 @@
   padding: 5px;
   text-align: center;
 
+  .rotation {
+    position: absolute;
+    margin-left: -15px;
+    margin-top: -20px;
+    rotate: 180deg;
+  }
+
   > div {
     width: 100%;
     position: relative;
