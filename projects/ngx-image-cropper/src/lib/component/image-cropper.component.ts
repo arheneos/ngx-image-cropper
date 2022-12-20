@@ -455,13 +455,10 @@ export class ImageCropperComponent implements OnChanges, OnInit {
         const offsetX = ((this.wrapper.nativeElement.offsetWidth - this.sourceImage.nativeElement.offsetWidth) / 2);
         const moveX = this.cropperPositionService.getClientX(event) - offsetX;
         const moveY = this.cropperPositionService.getClientY(event) - wrapper.top;
-        // const cosOriginal = Math.atan2(cen.y - (rect.y - wrapper.top), cen.x - (rect.x - offsetX - 10));
         const cosOriginal = Math.atan2(cen.y - this.moveStart!.anchorY, cen.x - this.moveStart!.anchorX);
         const cosPos = Math.atan2(cen.y - moveY, cen.x - moveX);
         const deg = (cosPos - cosOriginal) * 180 / Math.PI;
-        console.log(deg);
         this.rotation = this.moveStart!.rotation + deg;
-        // this.rotation = pre;
       }
       this.cd.detectChanges();
     }
@@ -591,7 +588,7 @@ export class ImageCropperComponent implements OnChanges, OnInit {
   crop(): ImageCroppedEvent | null {
     if (this.loadedImage?.transformed?.image != null) {
       this.startCropImage.emit();
-      const output = this.cropService.crop(this.sourceImage, this.loadedImage, this.cropper, this.settings);
+      const output = this.cropService.crop(this.sourceImage, this.loadedImage, this.cropper, this.settings, this.rotation);
       if (output != null) {
         this.imageCropped.emit(output);
       }

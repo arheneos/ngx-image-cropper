@@ -7,7 +7,7 @@ import { percentage } from '../utils/percentage.utils';
 @Injectable({providedIn: 'root'})
 export class CropService {
 
-  crop(sourceImage: ElementRef, loadedImage: LoadedImage, cropper: CropperPosition, settings: CropperSettings): ImageCroppedEvent | null {
+  crop(sourceImage: ElementRef, loadedImage: LoadedImage, cropper: CropperPosition, settings: CropperSettings, rotation: number): ImageCroppedEvent | null {
     const imagePosition = this.getImagePosition(sourceImage, loadedImage, cropper, settings);
     const width = imagePosition.x2 - imagePosition.x1;
     const height = imagePosition.y2 - imagePosition.y1;
@@ -31,7 +31,7 @@ export class CropService {
     const transformedImage = loadedImage.transformed;
     ctx.setTransform(scaleX, 0, 0, scaleY, transformedImage.size.width / 2 + translateH, transformedImage.size.height / 2 + translateV);
     ctx.translate(-imagePosition.x1 / scaleX, -imagePosition.y1 / scaleY);
-    ctx.rotate((settings.transform.rotate || 0) * Math.PI / 180);
+    ctx.rotate((-rotation || 0) * Math.PI / 180);
 
     ctx.drawImage(
       transformedImage.image,
