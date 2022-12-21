@@ -60,8 +60,9 @@ export class CropperPositionService {
   }
 
   resize(event: any, moveStart: MoveStart, cropperPosition: CropperPosition, maxSize: Dimensions, settings: CropperSettings, rotation: number): void {
-    const cos = Math.cos(this.deg2rad(rotation));
-    const sin = Math.sin(this.deg2rad(rotation));
+    const cos = Math.cos(this.deg2rad(-rotation));
+    const sin = Math.sin(this.deg2rad(-rotation));
+    const tan = Math.tan(this.deg2rad(rotation));
     const center = {
       x: (cropperPosition.x1 + cropperPosition.x2) / 2,
       y: (cropperPosition.y1 + cropperPosition.y2) / 2,
@@ -75,8 +76,34 @@ export class CropperPositionService {
     const delX = this.getClientX(event) - moveStart.clientX;
     const delY = this.getClientY(event) - moveStart.clientY;
     const angle = this.deg2rad(rotation);
-    let moveX = delX;
-    let moveY = delY;
+    const moveX = delX * cos - delY * sin;
+    const moveY = delX * sin + delY * cos;
+    // 1. TL, TR, BL, BR 일 경우
+    // Width, Height 구해서, 위치 알아서 변경할것
+    let rotatingNames = [
+      'topleft',
+      'topright',
+      'bottomright',
+      'bottomleft',
+    ];
+    console.log(cos);
+    console.log(sin);
+    // Rotation Matrix
+    const R = [
+      [cos, -sin],
+      [sin, cos]
+    ];
+    const movement = [moveY, moveX];
+    const finalMovement = []
+    switch (moveStart.position) {
+      case 'topright':
+      case 'topleft':
+      case 'bottomleft':
+      case 'bottomright':
+    }
+
+    console.log(moveX);
+    console.log(moveY);
 
     switch (moveStart.position) {
       case 'left':
@@ -134,23 +161,14 @@ export class CropperPositionService {
           cropperPosition.y1 + settings.cropperScaledMinHeight);
         break;
       case 'bottomleft':
-
-        if (45 < angle && angle < 135) {
-          // moveX = delY;
-          // moveY = delX;
-        } else if (225 < angle && angle < 315) {
-          // moveX = delY;
-          // moveY = delX;
-        } else {
-          cropperPosition.x1 = Math.min(Math.max(moveStart.x1 + moveX, cropperPosition.x2 - settings.cropperScaledMaxWidth),
-            cropperPosition.x2 - settings.cropperScaledMinWidth);
-          cropperPosition.x2 = Math.max(Math.min(moveStart.x2 - moveX, cropperPosition.x1 + settings.cropperScaledMaxWidth),
-            cropperPosition.x1 + settings.cropperScaledMinWidth);
-          cropperPosition.y2 = Math.max(Math.min(moveStart.y2 + moveY, cropperPosition.y1 + settings.cropperScaledMaxHeight),
-            cropperPosition.y1 + settings.cropperScaledMinHeight);
-          cropperPosition.y1 = Math.min(Math.max(moveStart.y1 - moveY, cropperPosition.y2 - settings.cropperScaledMaxHeight),
-            cropperPosition.y2 - settings.cropperScaledMinHeight);
-        }
+        cropperPosition.x1 = Math.min(Math.max(moveStart.x1 + moveX, cropperPosition.x2 - settings.cropperScaledMaxWidth),
+          cropperPosition.x2 - settings.cropperScaledMinWidth);
+        cropperPosition.x2 = Math.max(Math.min(moveStart.x2 - moveX, cropperPosition.x1 + settings.cropperScaledMaxWidth),
+          cropperPosition.x1 + settings.cropperScaledMinWidth);
+        cropperPosition.y2 = Math.max(Math.min(moveStart.y2 + moveY, cropperPosition.y1 + settings.cropperScaledMaxHeight),
+          cropperPosition.y1 + settings.cropperScaledMinHeight);
+        cropperPosition.y1 = Math.min(Math.max(moveStart.y1 - moveY, cropperPosition.y2 - settings.cropperScaledMaxHeight),
+          cropperPosition.y2 - settings.cropperScaledMinHeight);
         break;
       case 'center':
         const scale = event.scale;
