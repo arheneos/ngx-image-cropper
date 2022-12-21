@@ -7,11 +7,33 @@ import { percentage } from '../utils/percentage.utils';
 @Injectable({providedIn: 'root'})
 export class CropService {
 
+  deg2rad(degrees: number): number {
+    return degrees * (Math.PI/180);
+  }
+
   crop(sourceImage: ElementRef, loadedImage: LoadedImage, cropper: CropperPosition, settings: CropperSettings, rotation: number): ImageCroppedEvent | null {
     const imagePosition = this.getImagePosition(sourceImage, loadedImage, cropper, settings);
     const width = imagePosition.x2 - imagePosition.x1;
     const height = imagePosition.y2 - imagePosition.y1;
+    const cos = Math.cos(this.deg2rad(rotation));
+    const sin = Math.sin(this.deg2rad(rotation));
     const cropCanvas = document.createElement('canvas') as HTMLCanvasElement;
+    const center = {
+      x: (cropper.x1 + cropper.x2) / 2,
+      y: (cropper.y1 + cropper.y2) / 2,
+      pw: Math.max(cropper.x1 - cropper.x2, cropper.x2 - cropper.x1),
+      ph: Math.max(cropper.y1 - cropper.y2, cropper.y2 - cropper.y1),
+    };
+    const centerCropper = {
+      x1: center.x,
+      x2: center.x,
+      y1: center.y,
+      y2: center.y,
+    } as CropperPosition;
+    const imagePositionCenter = this.getImagePosition(sourceImage, loadedImage, centerCropper, settings);
+
+    // pw / cos ()
+    // ph / sin ()
     cropCanvas.width = width;
     cropCanvas.height = height;
 
@@ -29,10 +51,17 @@ export class CropService {
     const {translateH, translateV} = this.getCanvasTranslate(sourceImage, loadedImage, settings);
 
     const transformedImage = loadedImage.transformed;
+    console.log(imagePosition);
+    const w = imagePosition.x2 - imagePosition.x1;
+    const h = imagePosition.y2 - imagePosition.y1;
+    const delCX = imagePositionCenter.x1 * cos - imagePositionCenter.y1 * sin;
+    const delCY = imagePositionCenter.x1 * sin + imagePositionCenter.y1 * cos;
     ctx.setTransform(scaleX, 0, 0, scaleY, transformedImage.size.width / 2 + translateH, transformedImage.size.height / 2 + translateV);
-    ctx.translate(-imagePosition.x1 / scaleX, -imagePosition.y1 / scaleY);
+    // ctx.translate(-(imagePosition.x1 - w / 2) / scaleX, -(imagePosition.y1 - h / 2) / scaleY);
     ctx.rotate((-rotation || 0) * Math.PI / 180);
-
+    // ctx.translate(-(delW / 2) / scaleX, -(delH / 2) / scaleY);
+    ctx.translate(-delCX, -delCY);
+    // ctx.translate(-imagePosition.x1 / scaleX, -imagePosition.y1 / scaleY);
     ctx.drawImage(
       transformedImage.image,
       -transformedImage.size.width / 2,

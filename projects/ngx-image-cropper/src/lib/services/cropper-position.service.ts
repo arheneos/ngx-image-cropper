@@ -62,49 +62,10 @@ export class CropperPositionService {
   resize(event: any, moveStart: MoveStart, cropperPosition: CropperPosition, maxSize: Dimensions, settings: CropperSettings, rotation: number): void {
     const cos = Math.cos(this.deg2rad(-rotation));
     const sin = Math.sin(this.deg2rad(-rotation));
-    const tan = Math.tan(this.deg2rad(rotation));
-    const center = {
-      x: (cropperPosition.x1 + cropperPosition.x2) / 2,
-      y: (cropperPosition.y1 + cropperPosition.y2) / 2,
-      pw: Math.max(cropperPosition.x1 - cropperPosition.x2, cropperPosition.x2 - cropperPosition.x1),
-      ph: Math.max(cropperPosition.y1 - cropperPosition.y2, cropperPosition.y2 - cropperPosition.y1),
-      w: 0,
-      h: 0
-    };
-    center.w = cos * center.pw;
-    center.h = sin * center.ph;
     const delX = this.getClientX(event) - moveStart.clientX;
     const delY = this.getClientY(event) - moveStart.clientY;
-    const angle = this.deg2rad(rotation);
     const moveX = delX * cos - delY * sin;
     const moveY = delX * sin + delY * cos;
-    // 1. TL, TR, BL, BR 일 경우
-    // Width, Height 구해서, 위치 알아서 변경할것
-    let rotatingNames = [
-      'topleft',
-      'topright',
-      'bottomright',
-      'bottomleft',
-    ];
-    console.log(cos);
-    console.log(sin);
-    // Rotation Matrix
-    const R = [
-      [cos, -sin],
-      [sin, cos]
-    ];
-    const movement = [moveY, moveX];
-    const finalMovement = []
-    switch (moveStart.position) {
-      case 'topright':
-      case 'topleft':
-      case 'bottomleft':
-      case 'bottomright':
-    }
-
-    console.log(moveX);
-    console.log(moveY);
-
     switch (moveStart.position) {
       case 'left':
         cropperPosition.x1 = Math.min(Math.max(moveStart.x1 + moveX, cropperPosition.x2 - settings.cropperScaledMaxWidth),
