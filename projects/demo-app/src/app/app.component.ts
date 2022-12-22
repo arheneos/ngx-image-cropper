@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import { Dimensions, ImageCroppedEvent, ImageTransform } from '../../../ngx-image-cropper/src';
 
 @Component({
@@ -6,7 +6,7 @@ import { Dimensions, ImageCroppedEvent, ImageTransform } from '../../../ngx-imag
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
   imageChangedEvent: any = '';
   croppedImage: any = '';
   canvasRotation = 0;
@@ -24,6 +24,9 @@ export class AppComponent {
   loading = false;
   allowMoveImage = false;
   hidden = false;
+  x = 0;
+  img = new Image();
+  @ViewChild('canvas') canvas!: ElementRef<HTMLCanvasElement>;
 
   fileChangeEvent(event: any): void {
     this.loading = true;
@@ -32,7 +35,6 @@ export class AppComponent {
 
   imageCropped(event: ImageCroppedEvent) {
     this.croppedImage = event.base64;
-    console.log(event);
   }
 
   imageLoaded() {
@@ -157,5 +159,48 @@ export class AppComponent {
 
   toggleAspectRatio() {
     this.aspectRatio = this.aspectRatio === 4 / 3 ? 16 / 5 : 4 / 3;
+  }
+
+  deg2rad(degrees: number): number {
+    return degrees * (Math.PI/180);
+  }
+
+  ngOnInit(): void {
+    /*
+    this.img.src = this.imageURL;
+    setTimeout(() => {
+      if (this.canvas.nativeElement) {
+        this.canvas.nativeElement.width = 1000;
+        this.canvas.nativeElement.height = 1000;
+        const ctx = this.canvas.nativeElement.getContext('2d')!;
+        const cos = Math.cos(this.deg2rad(30));
+        const sin = Math.sin(this.deg2rad(30));
+        const rcos = Math.cos(this.deg2rad(-30));
+        const rsin = Math.sin(this.deg2rad(-30));
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.translate(0, 0);
+        ctx.translate(200, 200); // Zero Point
+        ctx.rotate(this.deg2rad(-30));
+        // ??? 1. a + b = 100
+        // ??? not dependent via box size
+        // image size 와 관련?? 각도랑도?
+        // ctx.drawImage(this.img, -((this.img.width / 2) + 274 - 70), -((this.img.height / 2) + 92 + 170));
+        ctx.drawImage(this.img, -902, -291);
+        ctx.resetTransform();
+        ctx.globalAlpha = 0.2;
+        ctx.resetTransform();
+        ctx.fillRect(0, 0, 400, 400);
+        ctx.resetTransform();
+        ctx.fillRect(190, 190, 20, 20);
+        ctx.resetTransform();
+        // ctx.fillRect(200, 200, 400, 400);
+
+      }
+    }, 100);
+     */
+  }
+
+  changeX(): void {
+    const ctx = this.canvas.nativeElement.getContext('2d')!;
   }
 }

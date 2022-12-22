@@ -13,27 +13,18 @@ export class CropService {
 
   crop(sourceImage: ElementRef, loadedImage: LoadedImage, cropper: CropperPosition, settings: CropperSettings, rotation: number): ImageCroppedEvent | null {
     const imagePosition = this.getImagePosition(sourceImage, loadedImage, cropper, settings);
-    const width = imagePosition.x2 - imagePosition.x1;
-    const height = imagePosition.y2 - imagePosition.y1;
-    const cos = Math.cos(this.deg2rad(rotation));
-    const sin = Math.sin(this.deg2rad(rotation));
+    const origin_width = Math.max(imagePosition.x1 - imagePosition.x2, imagePosition.x2 - imagePosition.x1);
+    const origin_height = Math.max(imagePosition.y1 - imagePosition.y2, imagePosition.y2 - imagePosition.y1);
     const cropCanvas = document.createElement('canvas') as HTMLCanvasElement;
     const center = {
-      x: (cropper.x1 + cropper.x2) / 2,
-      y: (cropper.y1 + cropper.y2) / 2,
-      pw: Math.max(cropper.x1 - cropper.x2, cropper.x2 - cropper.x1),
-      ph: Math.max(cropper.y1 - cropper.y2, cropper.y2 - cropper.y1),
+      x: (imagePosition.x1 + imagePosition.x2) / 2,
+      y: (imagePosition.y1 + imagePosition.y2) / 2,
+      pw: Math.max(imagePosition.x1 - imagePosition.x2, imagePosition.x2 - imagePosition.x1),
+      ph: Math.max(imagePosition.y1 - imagePosition.y2, imagePosition.y2 - imagePosition.y1),
     };
-    const centerCropper = {
-      x1: center.x,
-      x2: center.x,
-      y1: center.y,
-      y2: center.y,
-    } as CropperPosition;
-    const imagePositionCenter = this.getImagePosition(sourceImage, loadedImage, centerCropper, settings);
+    const width = origin_width;
+    const height = origin_height;
 
-    // pw / cos ()
-    // ph / sin ()
     cropCanvas.width = width;
     cropCanvas.height = height;
 
@@ -45,29 +36,14 @@ export class CropService {
       ctx.fillStyle = settings.backgroundColor;
       ctx.fillRect(0, 0, width, height);
     }
-
-    const scaleX = (settings.transform.scale || 1) * (settings.transform.flipH ? -1 : 1);
-    const scaleY = (settings.transform.scale || 1) * (settings.transform.flipV ? -1 : 1);
-    const {translateH, translateV} = this.getCanvasTranslate(sourceImage, loadedImage, settings);
-
-    const transformedImage = loadedImage.transformed;
-    console.log(imagePosition);
-    const w = imagePosition.x2 - imagePosition.x1;
-    const h = imagePosition.y2 - imagePosition.y1;
-    const delCX = imagePositionCenter.x1 * cos - imagePositionCenter.y1 * sin;
-    const delCY = imagePositionCenter.x1 * sin + imagePositionCenter.y1 * cos;
-    ctx.setTransform(scaleX, 0, 0, scaleY, transformedImage.size.width / 2 + translateH, transformedImage.size.height / 2 + translateV);
-    // ctx.translate(-(imagePosition.x1 - w / 2) / scaleX, -(imagePosition.y1 - h / 2) / scaleY);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.translate(width / 2, height / 2); // Zero Point
     ctx.rotate((-rotation || 0) * Math.PI / 180);
-    // ctx.translate(-(delW / 2) / scaleX, -(delH / 2) / scaleY);
-    ctx.translate(-delCX, -delCY);
-    // ctx.translate(-imagePosition.x1 / scaleX, -imagePosition.y1 / scaleY);
     ctx.drawImage(
-      transformedImage.image,
-      -transformedImage.size.width / 2,
-      -transformedImage.size.height / 2
+      loadedImage.transformed.image,
+      -center.x,
+      -center.y,
     );
-
     const output: ImageCroppedEvent = {
       width, height,
       imagePosition,
@@ -116,14 +92,6 @@ export class CropService {
       x2: Math.round(cropper.x2 * ratio),
       y2: Math.round(cropper.y2 * ratio)
     };
-
-    if (!settings.containWithinAspectRatio) {
-      out.x1 = Math.max(out.x1, 0);
-      out.y1 = Math.max(out.y1, 0);
-      out.x2 = Math.min(out.x2, loadedImage.transformed.size.width);
-      out.y2 = Math.min(out.y2, loadedImage.transformed.size.height);
-    }
-
     return out;
   }
 
